@@ -285,7 +285,7 @@ if __name__ == '__main__':
 
     video_path = args.video_path
     video_id = os.path.splitext(os.path.basename(video_path))[0]
-    audio_path = os.path.join(os.path.dirname(video_path), video_id + '_audio.webm')
+    audio_path = video_path
 
     # Process video
     try:

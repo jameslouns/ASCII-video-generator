@@ -7,8 +7,7 @@ import numpy as np
 import random
 from moviepy import *
 import string
-from pytubefix import YouTube
-from pytubefix.cli import on_progress
+import yt_dlp
 from PIL import Image, ImageFont, ImageDraw
 import time
 import torch
@@ -322,10 +321,14 @@ if __name__ == '__main__':
     file_path = os.path.join(BASE_DIR, 'Videos')
     file_name = 'Dare'
     url = 'https://www.youtube.com/watch?v=7G_MqnMBCmI'  # example URL — replace with your own
-    YouTube(url, on_progress_callback=on_progress).streams.order_by('resolution').last().download(
-        output_path=file_path, filename=file_name + '.mp4')
-    YouTube(url).streams.get_lowest_resolution().download(output_path=file_path, filename=file_name + 'audio' + '.mp4')
-    videosound = VideoFileClip('Videos/' + file_name + 'audio' + '.mp4')
+    ydl_opts = {
+        'format': 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best',
+        'outtmpl': os.path.join(file_path, file_name + '.%(ext)s'),
+        'merge_output_format': 'mp4',
+    }
+    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+        ydl.download([url])
+    videosound = VideoFileClip('Videos/' + file_name + '.mp4')
     # Get video info
     video_path = os.path.join(file_path, file_name + '.mp4')
     vid = cv2.VideoCapture(video_path)
