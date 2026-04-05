@@ -4,8 +4,7 @@ import sys
 import os
 import threading
 import time
-from pytubefix import YouTube
-from pytubefix.cli import on_progress
+import yt_dlp
 import cv2
 import datetime
 import re
@@ -58,13 +57,15 @@ def download_video():
         if not video_id:
             video_id = "video_" + datetime.datetime.now().strftime("%Y%m%d%H%M%S")
 
-        # Download video
-        video = YouTube(url)
-        video.streams.order_by('resolution').last().download(output_path='Videos', filename=video_id + '.mp4')
-
-        # Download audio
-        audio_stream = video.streams.get_lowest_resolution()
-        audio_stream.download(output_path='Videos', filename=video_id + '_audio.webm')
+        # Download video+audio merged
+        ydl_opts = {
+            'format': 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best',
+            'outtmpl': f'Videos/{video_id}.%(ext)s',
+            'merge_output_format': 'mp4',
+            'quiet': True,
+        }
+        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+            ydl.download([url])
 
         # Get metadata
         video_path = os.path.join('Videos', video_id + '.mp4')
