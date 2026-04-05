@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Processing Video</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #121212;
+            color: #e0e0e0;
+        }
+        h1 {
+            text-align: center;
+            color: #ffffff;
+        }
+        .progress-container {
+            width: 100%;
+            background-color: #2d2d2d;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        #progress-bar {
+            width: 0%;
+            height: 20px;
+            background-color: #4CAF50;
+            color: white;
+            margin: 20px 0;
+            transition: width 0.3s;
+            text-align: center;
+            line-height: 20px;
+        }
+        #download-link {
+            display: none;
+            text-align: center;
+            margin-top: 20px;
+            color: #e0e0e0;
+        }
+        #error-message {
+            color: #FF5252;
+            display: none;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Processing Video</h1>
+    <div class="progress-container">
+        <div id="progress-bar"></div>
+    </div>
+    <div id="download-link"></div>
+    <div id="error-message"></div>
+
+    <script>
+        const eventSource = new EventSource('/progress');
+        eventSource.onmessage = function(event) {
+            const data = event.data;
+            console.log('Received data:', data);
+            if (data.startsWith('Percent Done: 100%')) {
+                document.getElementById('progress-bar').style.width = '100%';
+                document.getElementById('progress-bar').textContent = 'Writing file...';
+            }
+            else if (data.startsWith('Percent Done:')) {
+                const percent = data.split('Percent Done: ')[1].split('%')[0];
+                document.getElementById('progress-bar').style.width = percent + '%';
+            }
+            else if (data.startsWith('Output file:')) {
+                const filename = data.split('Output file: ')[1].trim();
+                window.location.href = `/download_success?filename=${filename}`;
+                eventSource.close();
+            }
+            else if (data.startsWith('ERROR:')) {
+                document.getElementById('error-message').textContent = data.replace('ERROR: ', '');
+                document.getElementById('error-message').style.display = 'block';
+            }
+        };
+    </script>
+</body>
+</html>
